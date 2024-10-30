@@ -3,7 +3,6 @@
 {% block title %}错误检测{% endblock %}
 
 {% block header %}错误检测{% endblock %}
-
 {% block content %}
     <table>
         <thead>
@@ -20,7 +19,9 @@
             <tr>
                 <td class="index">{{ forloop.counter }}</td>
                 <td>{{ error.error_type }}</td>
-                <td>{{ error.error_detail|safe }}</td>
+                <td>
+                    {{ error.error_detail|safe }}  <!-- 直接展示数据库中的HTML -->
+                </td>
                 <td>{{ error.timestamp|date:"Y-m-d H:i:s" }}</td>
                 <td>
                     {% if error.error_type == '定时任务遗漏' %}
@@ -43,7 +44,42 @@
         </tbody>
     </table>
 
+    <!-- 提示框 -->
+    <div id="copy-alert"
+         style="display: none; position: fixed; background: #4caf50; color: white; padding: 10px; border-radius: 5px;">
+        已复制到粘贴板
+    </div>
+
     <script>
+        // 点击复制功能实现
+        document.addEventListener('click', (event) => {
+            if (event.target.classList.contains('highlight')) {
+                const text = event.target.innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopyAlert();  // 显示提示框
+                }).catch(err => {
+                    console.error('复制失败:', err);
+                    alert('复制失败，请重试');
+                });
+            }
+        });
+
+        // 显示“已复制到粘贴板”提示框在屏幕中央
+        function showCopyAlert() {
+            const alertBox = document.getElementById('copy-alert');
+            alertBox.style.display = 'block';
+
+            // 将提示框定位到屏幕中央
+            const {innerWidth, innerHeight} = window;
+            const {offsetWidth, offsetHeight} = alertBox;
+            alertBox.style.left = `${(innerWidth - offsetWidth) / 2}px`;
+            alertBox.style.top = `${(innerHeight - offsetHeight) / 2}px`;
+
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 2000);  // 2秒后隐藏提示框
+        }
+
         function handleAction(error_id, action, correct_time, button) {
             button.disabled = true;
             button.classList.add('loading');
@@ -79,7 +115,6 @@
             });
         });
 
-
         // 处理删除聊天记录检测错误
         function deleteChatRecordError(error_id, button) {
             button.disabled = true;
@@ -105,7 +140,12 @@
                 button.innerText = '删除错误';
             });
         }
-
-
     </script>
+
+    <style>
+        /* 鼠标悬停时显示手型光标 */
+        .highlight {
+            cursor: pointer;
+        }
+    </style>
 {% endblock %}
