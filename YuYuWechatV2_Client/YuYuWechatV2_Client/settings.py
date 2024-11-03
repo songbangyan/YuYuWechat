@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+
 from celery import Celery
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -17,6 +18,7 @@ SECRET_KEY = "django-insecure-eg5==xf(%_&14^%k-)lp0hb$bvst#(ekj2h$m278zaypc*e9_y
 DEBUG = False
 
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://localhost').split(',')
 
 # Application definition
 INSTALLED_APPS = [
