@@ -223,6 +223,8 @@ gpedit.msc
 - 在同目录下创建一个文件夹`postgres_data`，用于挂载数据库文件
 - 运行`docker-compose up`即可运行
 
+###### 如果你想用https访问，需要在`docker-compose.yml`文件里修改
+`- CSRF_TRUSTED_ORIGINS=https://localhost,https://yourdomain.com  # 定义CSRF信任域`，不然会出现csrf问题
 ###### 
 
 这个docker文件会拉取三个镜像，
@@ -244,6 +246,8 @@ gpedit.msc
 - 安装依赖`pip install -r requirements.txt`
 - 运行`python manage.py runserver 127.0.0.1:7500 --insecure`
 
+###### 如果你想用https访问，需要在`YuYuWechatV2_Client/YuYuWechatV2_Client/settings.py`文件里修改
+`CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://localhost').split(',')`，不然会出现csrf问题
 
 ## 打开客户端
 
