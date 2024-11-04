@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+</head>
+<br>
+<h1>服务端已成功部署</h1>
+<h2>你还需要安装客户端来对服务端进行控制</h2>
+<p>请参考<a href="https://github.com/xieyumc/YuYuWechat?tab=readme-ov-file#3-部署客户端">安装客户端</a></p>
+<br>
+<h1>使用简单的方法来测试服务端是否正常</h1>
+<p>使用以下命令可以测试服务端是否正常：</p>
+<pre>curl http://127.0.0.1:8000/wechat/ping</pre>
+<p>使用以下命令可以向文件传输助手发送一条消息：</p>
+<pre>
+$jsonData = '{"name": "文件传输助手", "text": "hi"}'
+Invoke-WebRequest -Uri http://127.0.0.1:8000/wechat/send_message/ -Method Post -Headers @{"Content-Type"="application/json"} -Body $jsonData -ContentType "application/json; charset=utf-8"
+    </pre>
+</body>
+</html>

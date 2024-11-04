@@ -5,10 +5,15 @@ from queue import Queue, Empty
 
 import comtypes
 from django.http import JsonResponse
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import WeChatConfig
 from .ui_auto_wechat import WeChat
+
+
+def home(request):
+    return render(request, 'home.html')
 
 # 初始化 WeChat 类实例
 # wechat = WeChat(path="C:/Program Files/Tencent/WeChat/WeChat.exe", locale="zh-CN")
