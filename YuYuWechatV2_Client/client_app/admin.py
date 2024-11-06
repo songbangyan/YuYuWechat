@@ -29,6 +29,7 @@ class ScheduledMessageAdmin(admin.ModelAdmin):
     search_fields = ('text', 'user__username')  # 支持按消息内容和用户名搜索
     list_filter = ('is_active', 'user__group')  # 按是否激活和用户分组过滤
     ordering = ('-last_executed',)  # 按照 last_executed 字段倒序排列记录
+    autocomplete_fields = ['user']  # 启用 user 字段的自动完成搜索
 
 
 class ScheduledFileMessageAdmin(admin.ModelAdmin):
@@ -36,6 +37,8 @@ class ScheduledFileMessageAdmin(admin.ModelAdmin):
     search_fields = ('file_path', 'user__username')  # 支持按文件路径和用户名搜索
     list_filter = ('is_active', 'user__group')  # 按是否激活和用户分组过滤
     ordering = ('-last_executed',)  # 按照 last_executed 字段倒序排列记录
+    autocomplete_fields = ['user']  # 启用 user 字段的自动完成搜索
+
 
 class EmailSettingsAdmin(admin.ModelAdmin):
     list_display = ('email_host', 'email_port', 'email_security', 'email_host_user', 'default_from_email')  # 在列表页显示字段
@@ -55,12 +58,14 @@ class LogAdmin(admin.ModelAdmin):
     ordering = ('-timestamp',)  # 按照 timestamp 字段倒序排列记录
     search_fields = ('function_name', 'result')  # 支持按函数名和结果搜索
 
+
 class MessageCheckAdmin(admin.ModelAdmin):
     list_display = ('user', 'keyword', 'cron_expression', 'message_count', 'use_time_blocks', 'report_on_found',
                     'is_active')  # 在列表页显示字段
     search_fields = ('keyword', 'user__username')  # 支持按关键词和用户名搜索
     list_filter = ('is_active', 'user__group')  # 按是否激活和用户分组过滤
-    ordering = ('user',)  # 按照 execution_count 字段倒序排列记录
+    ordering = ('user',)  # 按照 user 字段排序
+    autocomplete_fields = ['user']  # 启用 user 字段的自动完成搜索
 
 
 admin.site.register(Log, LogAdmin)
