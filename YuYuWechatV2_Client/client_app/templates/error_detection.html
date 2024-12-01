@@ -10,7 +10,7 @@
             <th>序号</th>
             <th>错误类型</th>
             <th>详细错误</th>
-            <th>时间</th>  <!-- 新增时间列 -->
+            <th>时间</th>
             <th>操作</th>
         </tr>
         </thead>
@@ -20,7 +20,7 @@
                 <td class="index">{{ forloop.counter }}</td>
                 <td>{{ error.error_type }}</td>
                 <td>
-                    {{ error.error_detail|safe }}  <!-- 直接展示数据库中的HTML -->
+                    {{ error.error_detail|safe }}
                 </td>
                 <td>{{ error.timestamp|date:"Y-m-d H:i:s" }}</td>
                 <td>
@@ -44,10 +44,10 @@
         </tbody>
     </table>
 
-    <!-- 提示框 -->
-    <div id="copy-alert"
+    <!-- 通知框 -->
+    <div id="notification"
          style="display: none; position: fixed; background: #4caf50; color: white; padding: 10px; border-radius: 5px;">
-        已复制到粘贴板
+        <!-- 消息内容将被填充在这里 -->
     </div>
 
     <script>
@@ -56,28 +56,36 @@
             if (event.target.classList.contains('highlight')) {
                 const text = event.target.innerText;
                 navigator.clipboard.writeText(text).then(() => {
-                    showCopyAlert();  // 显示提示框
+                    showNotification('已复制到粘贴板');  // 显示提示框
                 }).catch(err => {
                     console.error('复制失败:', err);
-                    alert('复制失败，请重试');
+                    showNotification('复制失败，请重试', true);
                 });
             }
         });
 
-        // 显示“已复制到粘贴板”提示框在屏幕中央
-        function showCopyAlert() {
-            const alertBox = document.getElementById('copy-alert');
-            alertBox.style.display = 'block';
+        // 显示非侵入式的通知框
+        function showNotification(message, isError = false) {
+            const notificationBox = document.getElementById('notification');
+            notificationBox.innerText = message;
+            notificationBox.style.background = isError ? '#f44336' : '#4caf50'; // 红色表示错误，绿色表示成功
+            notificationBox.style.display = 'block';
 
             // 将提示框定位到屏幕中央
             const {innerWidth, innerHeight} = window;
-            const {offsetWidth, offsetHeight} = alertBox;
-            alertBox.style.left = `${(innerWidth - offsetWidth) / 2}px`;
-            alertBox.style.top = `${(innerHeight - offsetHeight) / 2}px`;
+            const {offsetWidth, offsetHeight} = notificationBox;
+            notificationBox.style.left = `${(innerWidth - offsetWidth) / 2}px`;
+            notificationBox.style.top = `${(innerHeight - offsetHeight) / 2}px`;
 
-            setTimeout(() => {
-                alertBox.style.display = 'none';
-            }, 2000);  // 2秒后隐藏提示框
+            // 如果之前有定时器，先清除
+            if (window.notificationTimeout) {
+                clearTimeout(window.notificationTimeout);
+            }
+
+            // 5秒后隐藏提示框
+            window.notificationTimeout = setTimeout(() => {
+                notificationBox.style.display = 'none';
+            }, 5000);  // 将时间延长到5秒
         }
 
         function handleAction(error_id, action, correct_time, button) {
@@ -97,13 +105,14 @@
                     correct_time: correct_time
                 })
             }).then(response => response.json()).then(data => {
-                alert(data.message);
+                showNotification(data.message);
                 location.reload();
             }).catch(error => {
                 console.error('Error:', error);
                 button.disabled = false;
                 button.classList.remove('loading');
                 button.innerText = action === 'ignore' ? '忽略错误' : '补发消息';
+                showNotification('操作失败，请重试', true);
             });
         }
 
@@ -131,13 +140,14 @@
                     task_id: error_id
                 })
             }).then(response => response.json()).then(data => {
-                alert(data.message);
+                showNotification(data.message);
                 location.reload();
             }).catch(error => {
                 console.error('Error:', error);
                 button.disabled = false;
                 button.classList.remove('loading');
                 button.innerText = '删除错误';
+                showNotification('删除失败，请重试', true);
             });
         }
     </script>
