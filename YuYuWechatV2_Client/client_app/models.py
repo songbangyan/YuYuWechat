@@ -132,3 +132,16 @@ class ErrorLog(models.Model):
 
     def __str__(self):
         return f"{self.error_type} - {self.error_detail}"
+
+
+class CustomScript(models.Model):
+    SLOT_CHOICES = (
+        (1, '脚本 1'),
+        (2, '脚本 2'),
+        (3, '脚本 3'),
+    )
+    slot = models.PositiveSmallIntegerField(choices=SLOT_CHOICES, unique=True)
+    code = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"脚本槽位 {self.slot}"

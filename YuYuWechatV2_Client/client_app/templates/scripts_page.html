@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}脚本管理{% endblock %}
+{% block header %}脚本管理{% endblock %}
+
+{% block content %}
+
+    <div class="card" style="width: 100%;">
+        <h3>脚本管理</h3>
+        <p>这里可以保存和切换三段脚本，点击保存后，下次刷新依然存在。</p>
+
+        <div>
+            <!-- 采用一个简单的Tab/按钮切换，实际可以用JS或前端框架美化 -->
+            <button type="button" onclick="showSlot(1)">槽位 1</button>
+            <button type="button" onclick="showSlot(2)">槽位 2</button>
+            <button type="button" onclick="showSlot(3)">槽位 3</button>
+        </div>
+
+        <!-- 三个槽位的编辑区 -->
+        {% for script_obj in script_objs %}
+            <div id="slot-{{ script_obj.slot }}" style="display:none; margin-top:20px;">
+                <form method="POST" action="" style="margin-bottom: 10px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="slot" value="{{ script_obj.slot }}">
+                    <label>槽位 {{ script_obj.slot }}:</label><br>
+                    <textarea name="code" rows="10" style="width:100%;">{{ script_obj.code }}</textarea><br>
+                    <button type="submit">保存当前槽位</button>
+                    <button type="button" onclick="runScript({{ script_obj.slot }})">运行脚本</button>
+                </form>
+                <pre id="output-{{ script_obj.slot }}" style="background: #eee; padding:10px;"></pre>
+                <pre id="error-{{ script_obj.slot }}" style="background: #fdd; padding:10px; color:red;"></pre>
+            </div>
+        {% endfor %}
+
+    </div>
+
+    <script>
+        // 默认显示槽位1
+        document.addEventListener("DOMContentLoaded", function () {
+            showSlot(1);
+        });
+
+        function showSlot(slot) {
+            // 隐藏所有槽位
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById("slot-" + i).style.display = "none";
+            }
+            // 显示对应槽位
+            document.getElementById("slot-" + slot).style.display = "block";
+        }
+
+        function runScript(slot) {
+            // 清空上一次的输出和错误
+            document.getElementById("output-" + slot).innerText = "";
+            document.getElementById("error-" + slot).innerText = "";
+
+            fetch("{% url 'run_script_view' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: "slot=" + slot
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.output) {
+                        document.getElementById("output-" + slot).innerText = data.output;
+                    }
+                    if (data.error) {
+                        document.getElementById("error-" + slot).innerText = data.error;
+                    }
+                })
+                .catch(err => {
+                    document.getElementById("error-" + slot).innerText = "请求出错：" + err;
+                });
+        }
+    </script>
+
+{% endblock %}

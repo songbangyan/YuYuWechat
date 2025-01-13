@@ -12,11 +12,13 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMessage, get_connection
 from django.core.management import call_command
 from django.core.paginator import Paginator
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
+from .models import CustomScript
 from .models import EmailSettings
 from .models import Message, WechatUser, ServerConfig, ScheduledMessage, Log, ErrorLog, MessageCheck, \
     ScheduledFileMessage
@@ -668,3 +670,73 @@ def check_email_settings(request):
         return JsonResponse({'status': 'error', 'message': 'Celery未运行'})
     else:
         return JsonResponse({'status': 'error', 'message': '邮箱未配置'})
+
+
+@login_required
+def scripts_view(request):
+    """
+    展示和编辑3段脚本
+    """
+    # 首先确保数据库中已经有了 3 条记录（slot=1,2,3）
+    _init_script_slots()
+
+    # 获取数据库中的所有脚本记录
+    script_objs = CustomScript.objects.all().order_by('slot')
+
+    # 如果是 POST 请求，更新某一个脚本内容
+    if request.method == 'POST':
+        slot = int(request.POST.get('slot'))
+        code = request.POST.get('code', '')
+        script_obj = CustomScript.objects.get(slot=slot)
+        script_obj.code = code
+        script_obj.save()
+        return redirect('scripts_view')  # 刷新页面或返回成功提示
+
+    context = {
+        'script_objs': script_objs,
+    }
+    return render(request, 'scripts_page.html', context)
+
+
+@login_required
+def run_script_view(request):
+    """
+    运行指定槽位下的脚本，返回运行结果。
+    """
+    if request.method == 'POST':
+        slot = int(request.POST.get('slot'))
+        script_obj = CustomScript.objects.get(slot=slot)
+        code_to_run = script_obj.code
+
+        # 运行代码并捕获输出
+        output, error = _run_python_code(code_to_run)
+
+        return JsonResponse({
+            'output': output,
+            'error': error,
+        }, json_dumps_params={'ensure_ascii': False})
+
+    return JsonResponse({'error': '只支持 POST 方法'}, status=405)
+
+
+def _init_script_slots():
+    """
+    用来初始化数据库中的slot记录，如果不存在则新建空记录。
+    """
+    for s in [1, 2, 3]:
+        CustomScript.objects.get_or_create(slot=s)
+
+
+def _run_python_code(code_str):
+    """
+    如果判断前端传的代码是想要执行generate_message_checks，
+    我们就直接调用相应的manage.py命令即可
+    """
+    import subprocess
+
+    # 这里不需要临时文件了，直接调用
+    cmd = ["python", "manage.py", "generate_message_checks"]
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    stdout, stderr = process.communicate()
+
+    return stdout, stderr

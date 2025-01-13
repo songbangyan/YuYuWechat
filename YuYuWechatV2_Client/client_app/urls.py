@@ -5,7 +5,7 @@ from .views import home, send_message, set_server_ip, schedule_management, send_
     import_database, start_celery, stop_celery, skip_execution, check_celery_running, get_server_ip, \
     check_wechat_status, log_view, log_counts, clear_logs, check_scheduled_message_errors, error_detection_view, \
     handle_error_cron, check_errors, login_view, send_email, check_email_settings, ping_server, message_check_view, \
-    delete_chat_record_error, file_schedule_management
+    delete_chat_record_error, file_schedule_management, scripts_view, run_script_view
 
 urlpatterns = [
     path('login/', login_view, name='login'),
@@ -37,4 +37,6 @@ urlpatterns = [
     path('check-email-settings/', check_email_settings, name='check_email_settings'),
     path('message_check/', message_check_view, name='message_check'),
     path('delete_chat_record_error/', delete_chat_record_error, name='delete_chat_record_error'),
+    path('scripts/', scripts_view, name='scripts_view'),
+    path('scripts/run/', run_script_view, name='run_script_view'),
 ]
