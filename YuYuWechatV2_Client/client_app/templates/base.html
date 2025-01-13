@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Default Title{% endblock %}</title>
     <style>
+        /* ======= 浅色默认样式 ======= */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
@@ -12,6 +13,7 @@
             display: flex;
             height: 100vh;
             background-color: #f2f2f7;
+            color: #000000;
         }
 
         .sidebar {
@@ -50,7 +52,7 @@
         .input-container {
             display: flex;
             align-items: center;
-            gap: 5px; /* 调整间隙大小 */
+            gap: 5px;
         }
 
         #pingStatus {
@@ -61,12 +63,12 @@
         .status-indicator {
             display: flex;
             align-items: center;
-            gap: 2px; /* 减小状态指示灯和文字之间的间隔 */
+            gap: 2px;
         }
 
         .input-container input {
             flex: 1;
-            max-width: 70%; /* 限制输入框宽度，根据实际情况调整 */
+            max-width: 70%;
         }
 
         input, button {
@@ -74,6 +76,7 @@
             font-size: 14px;
             border: 1px solid #ddd;
             border-radius: 10px;
+            outline: none; /* 移除默认聚焦轮廓 */
         }
 
         button {
@@ -96,13 +99,16 @@
         ul {
             list-style: none;
             padding: 0;
+            margin: 0; /* 让 ul 本身无外边距，避免超出 */
         }
 
         ul li {
             margin-bottom: 10px;
         }
 
-        ul li a, ul li form button {
+        /* 菜单链接 & 退出登录按钮 共用样式 */
+        ul li a,
+        ul li form button {
             text-decoration: none;
             color: #007aff;
             padding: 10px;
@@ -113,11 +119,14 @@
             border: none;
             cursor: pointer;
             text-align: left;
-            width: 100%;
+            width: 100%; /* 保证在侧边栏内自适应宽度 */
+            box-sizing: border-box;
             font-size: 15px;
+            outline: none; /* 移除默认聚焦轮廓 */
         }
 
-        ul li a:hover, ul li form button:hover {
+        ul li a:hover,
+        ul li form button:hover {
             background-color: #e0e0e0;
         }
 
@@ -166,6 +175,7 @@
             border-radius: 10px;
             padding: 10px;
             margin: 5px 0;
+            outline: none; /* 再次移除默认聚焦轮廓 */
         }
 
         button.skip-button {
@@ -176,8 +186,8 @@
 
         .button-status-container {
             display: flex;
-            align-items: center; /* 保证按钮和状态消息在同一行且垂直居中 */
-            gap: 10px; /* 在元素间增加一些间隔 */
+            align-items: center;
+            gap: 10px;
         }
 
         button.skip-button.active {
@@ -202,14 +212,80 @@
             }
 
             .card {
-                width: calc(100% - 40px); /* 调整卡片宽度以适应屏幕 */
+                width: calc(100% - 40px);
             }
         }
 
         .highlight {
-            background-color: #d0e9ff; /* 设置为淡蓝色 */
+            background-color: #d0e9ff;
             padding: 2px 4px;
             border-radius: 3px;
+        }
+
+        /* ======= 深色模式支持 ======= */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #121212;
+                color: #ffffff;
+            }
+
+            .sidebar {
+                background-color: #1f1f1f;
+                color: #ffffff;
+                border-right: 1px solid #3a3a3a;
+                box-shadow: none;
+            }
+
+            .card {
+                background-color: #1f1f1f;
+                border: 1px solid #3a3a3a;
+                box-shadow: none;
+            }
+
+            .card h3 {
+                color: #ffffff;
+            }
+
+            .topbar {
+                background-color: #333333;
+                color: #ffffff;
+            }
+
+            input, button, select,
+            .sidebar ul li a,
+            .sidebar ul li form button {
+                background-color: #333333;
+                color: #ffffff;
+                border: 1px solid #444444;
+                outline: none; /* 去掉聚焦时的轮廓 */
+                box-shadow: none; /* 移除阴影，避免视觉上外扩 */
+            }
+
+            /* Hover / Active 时的颜色调和 */
+            .sidebar ul li a:hover,
+            .sidebar ul li form button:hover {
+                background-color: #444444;
+                border-color: #555555;
+            }
+
+            .content {
+                background-color: #1f1f1f;
+                border-radius: 10px;
+                box-shadow: none;
+            }
+
+            th {
+                background-color: #2c2c2c;
+                color: #ffffff;
+            }
+
+            td {
+                border-color: #444444;
+            }
+
+            .highlight {
+                background-color: #375f80;
+            }
         }
     </style>
 </head>

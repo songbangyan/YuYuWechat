@@ -6,6 +6,58 @@
 {% block content %}
 
     <style>
+        @media (prefers-color-scheme: dark) {
+            /* 覆盖 card 的默认浅色背景及文字 */
+            .card.custom-script-card {
+                background-color: #2a2a2a !important; /* 深色背景 */
+                border-color: #444 !important; /* 深色边框 */
+                color: #f0f0f0 !important; /* 浅色文字 */
+            }
+
+            /* 卡片标题颜色统一 */
+            .card.custom-script-card h3 {
+                color: #ffffff !important;
+            }
+
+            /* 提示文字在深色下稍微调亮一些 */
+            .info-text {
+                color: #cccccc !important;
+            }
+
+            /* 危险提示保持红色即可，也可以根据需要改成更亮的红色 */
+            .danger-notice {
+                color: #ff5f5f; /* 或者你可以依然保持 #d9534f */
+            }
+
+            /* details 里面的 pre 背景，适合深色 */
+            details pre {
+                background-color: #333333 !important;
+                color: #cccccc !important;
+                border: 1px solid #444 !important;
+            }
+
+            /* 脚本编辑区的 textarea */
+            .script-editor textarea {
+                background-color: #333333 !important;
+                color: #ffffff !important;
+                border: 1px solid #444444 !important;
+            }
+
+            /* 输出区域 */
+            pre.output-area {
+                background-color: #333333 !important;
+                color: #d0d0d0 !important;
+                border: 1px solid #444444 !important;
+            }
+
+            /* 错误区域，底色可以再偏暗红一些以示区别 */
+            pre.error-area {
+                background-color: #442222 !important;
+                color: #ffcdd2 !important;
+                border: 1px solid #cc6666 !important;
+            }
+        }
+
         /* 让卡片更美观一些 */
         .card.custom-script-card {
             width: 100%;
@@ -132,7 +184,7 @@
 
         <details>
             <summary>示例脚本：根据 ScheduledMessage 生成 MessageCheck</summary>
-        <pre>
+            <pre>
 import datetime
 
 from client_app.models import ScheduledMessage, MessageCheck
