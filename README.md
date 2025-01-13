@@ -30,6 +30,8 @@
 ![img_3.png](img/img_3.png)
 <h6 align="center">后台管理界面，对消息数据进行增删改。
 
+![img.png](img/img27.png)
+<h6 align="center">执行自定义脚本
 
 # 📋 目录
 
@@ -354,6 +356,8 @@ python manage.py createsuperuser
 - `Recipient list:`：接收邮件的邮箱，可以填多个，用逗号隔开
 
 ## 根据 ScheduledMessage 生成 MessageCheck
+
+> 现在也可以使用执行自定义脚本的功能来生成，不需要手动进入后台创建
 
 写好ScheduledMessage后，有时候需要同时生成 MessageCheck，这是很常见的场景，所以我写了个迁移器来方便从cheduledMessage 生成 MessageCheck
 
