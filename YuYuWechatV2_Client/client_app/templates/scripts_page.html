@@ -6,14 +6,97 @@
 {% block content %}
 
     <div class="card" style="width: 100%;">
-        <h3>脚本管理</h3>
-        <p>这里可以保存并运行三段脚本。</p>
+        <h3>运行自定义脚本</h3>
+        <p style="color: red;">请谨慎执行，运行自定义脚本可能会造成严重的后果
+        <p>
+        <p>在这里，你可以手动执行python脚本，以实现一些特殊功能，如对数据库进行批量操作</p>
+        <p>自定义的程序将会使用<em>python manage.py</em>来调用执行，实际上是在YuYuWechatV2_Client工作目录下手动执行<em>python
+            manage.py xxxxx.py</em></p>
 
+
+        以下是一个脚本例子，根据 ScheduledMessage 生成 MessageCheck
+        <pre>
+import datetime
+
+from client_app.models import ScheduledMessage, MessageCheck
+from croniter import croniter
+from django.core.management.base import BaseCommand
+
+
+class Command(BaseCommand):
+    help = "根据 ScheduledMessage 生成 MessageCheck，时间为第二天的 15:00"
+
+    def handle(self, *args, **kwargs):
+        # 获取所有的 ScheduledMessage 对象
+        scheduled_messages = ScheduledMessage.objects.all()
+        created_count = 0  # 记录成功创建的 MessageCheck 数量
+
+        # 公共的 MessageCheck 默认配置
+        default_message_check_config = {
+            'keyword': "",
+            'message_count': 1,
+            'use_time_blocks': False,
+            'report_on_found': False
+        }
+
+        # 遍历每一个 ScheduledMessage 对象
+        for scheduled_message in scheduled_messages:
+            # 获取当前 ScheduledMessage 的 cron 表达式
+            cron_expression = scheduled_message.cron_expression
+
+            # 获取当前时间作为基准时间
+            base_time = datetime.datetime.now()
+
+            # 使用 croniter 解析 ScheduledMessage 的 cron 表达式，并获取下一个执行时间
+            cron_iter = croniter(cron_expression, base_time)
+            next_execution_time = cron_iter.get_next(datetime.datetime)
+
+            # 将下一个执行时间推迟一天，并设置为 15:00
+            day_after_next_execution = next_execution_time + datetime.timedelta(days=1)
+            day_after_next_execution = day_after_next_execution.replace(hour=15, minute=0, second=0, microsecond=0)
+
+            # 将原始的 cron 表达式拆解为分钟、小时、天、月、星期
+            cron_parts = cron_expression.split()
+            if len(cron_parts) != 5:
+                self.stdout.write(self.style.ERROR(f"无效的 cron 表达式: {cron_expression}"))
+                continue
+
+            # 生成新的 cron 表达式，分钟和小时为 0 15，天为计算后的一天，月份和星期保持不变
+            cron_expression_day_after = f"0 15 {day_after_next_execution.day} {cron_parts[3]} {cron_parts[4]}"
+
+            # 检查是否已经存在相同的 MessageCheck
+            existing_check = MessageCheck.objects.filter(
+                is_active=scheduled_message.is_active,
+                user=scheduled_message.user,
+                cron_expression=cron_expression_day_after,
+                **default_message_check_config  # 使用默认配置
+            ).first()
+
+            if existing_check:
+                self.stdout.write(self.style.WARNING(
+                    f"已存在相同的 MessageCheck（ScheduledMessage ID: {scheduled_message.id}），跳过创建。"
+                ))
+                continue
+
+            # 创建一个新的 MessageCheck 实例，设置相关的字段
+            MessageCheck.objects.create(
+                is_active=scheduled_message.is_active,  # 保持与 ScheduledMessage 一致的激活状态
+                user=scheduled_message.user,  # 关联的用户与 ScheduledMessage 相同
+                cron_expression=cron_expression_day_after,  # 设置为第二天 15:00 的 cron 表达式
+                **default_message_check_config  # 使用默认配置
+            )
+
+            # 每创建一个 MessageCheck，就增加计数
+            created_count += 1
+
+        # 输出成功创建的 MessageCheck 数量
+        self.stdout.write(self.style.SUCCESS(f"成功创建 {created_count} 条 MessageCheck"))
+        </pre>
         <div>
             <!-- 按钮切换槽位 -->
-            <button type="button" onclick="showSlot(1)">槽位 1</button>
-            <button type="button" onclick="showSlot(2)">槽位 2</button>
-            <button type="button" onclick="showSlot(3)">槽位 3</button>
+            <button type="button" onclick="showSlot(1)">脚本 1</button>
+            <button type="button" onclick="showSlot(2)">脚本 2</button>
+            <button type="button" onclick="showSlot(3)">脚本 3</button>
         </div>
 
         <!-- 三个槽位的编辑区 -->
@@ -21,7 +104,7 @@
             <div id="slot-{{ script_obj.slot }}" style="display:none; margin-top:20px;">
                 <!-- 去掉原本的 <form>，只保留 textarea -->
                 <!-- 给 textarea 一个 id，方便后续用JS取值 -->
-                <label>槽位 {{ script_obj.slot }}:</label><br>
+                <label>脚本 {{ script_obj.slot }}:</label><br>
                 <textarea id="code-slot-{{ script_obj.slot }}" rows="10" style="width:100%;">
 {{ script_obj.code }}</textarea><br>
 
