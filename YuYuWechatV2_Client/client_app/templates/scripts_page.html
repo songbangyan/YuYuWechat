@@ -7,10 +7,10 @@
 
     <div class="card" style="width: 100%;">
         <h3>脚本管理</h3>
-        <p>这里可以保存和切换三段脚本，点击保存后，下次刷新依然存在。</p>
+        <p>这里可以保存并运行三段脚本。</p>
 
         <div>
-            <!-- 采用一个简单的Tab/按钮切换，实际可以用JS或前端框架美化 -->
+            <!-- 按钮切换槽位 -->
             <button type="button" onclick="showSlot(1)">槽位 1</button>
             <button type="button" onclick="showSlot(2)">槽位 2</button>
             <button type="button" onclick="showSlot(3)">槽位 3</button>
@@ -19,19 +19,22 @@
         <!-- 三个槽位的编辑区 -->
         {% for script_obj in script_objs %}
             <div id="slot-{{ script_obj.slot }}" style="display:none; margin-top:20px;">
-                <form method="POST" action="" style="margin-bottom: 10px;">
-                    {% csrf_token %}
-                    <input type="hidden" name="slot" value="{{ script_obj.slot }}">
-                    <label>槽位 {{ script_obj.slot }}:</label><br>
-                    <textarea name="code" rows="10" style="width:100%;">{{ script_obj.code }}</textarea><br>
-                    <button type="submit">保存当前槽位</button>
-                    <button type="button" onclick="runScript({{ script_obj.slot }})">运行脚本</button>
-                </form>
+                <!-- 去掉原本的 <form>，只保留 textarea -->
+                <!-- 给 textarea 一个 id，方便后续用JS取值 -->
+                <label>槽位 {{ script_obj.slot }}:</label><br>
+                <textarea id="code-slot-{{ script_obj.slot }}" rows="10" style="width:100%;">
+{{ script_obj.code }}</textarea><br>
+
+                <!-- 只保留一个按钮「保存并运行」 -->
+                <button type="button" onclick="saveAndRunScript({{ script_obj.slot }})">
+                    保存并运行
+                </button>
+
+                <!-- 输出区域 -->
                 <pre id="output-{{ script_obj.slot }}" style="background: #eee; padding:10px;"></pre>
                 <pre id="error-{{ script_obj.slot }}" style="background: #fdd; padding:10px; color:red;"></pre>
             </div>
         {% endfor %}
-
     </div>
 
     <script>
@@ -49,11 +52,41 @@
             document.getElementById("slot-" + slot).style.display = "block";
         }
 
-        function runScript(slot) {
+        // 保存并运行
+        function saveAndRunScript(slot) {
             // 清空上一次的输出和错误
             document.getElementById("output-" + slot).innerText = "";
             document.getElementById("error-" + slot).innerText = "";
 
+            // 读取 textarea 的内容
+            const code = document.getElementById("code-slot-" + slot).value;
+
+            // 第一步：保存脚本
+            fetch("{% url 'scripts_view' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: "slot=" + slot + "&code=" + encodeURIComponent(code)
+            })
+                .then(response => response.json()) // <-- 需要后端返回JSON
+                .then(data => {
+                    if (data.error) {
+                        // 如果保存出错，直接显示信息
+                        document.getElementById("error-" + slot).innerText = data.error;
+                    } else {
+                        // 保存成功后，第二步：运行脚本
+                        runScript(slot);
+                    }
+                })
+                .catch(err => {
+                    document.getElementById("error-" + slot).innerText = "保存脚本时出错：" + err;
+                });
+        }
+
+        // 真正调用 run_script_view 的逻辑
+        function runScript(slot) {
             fetch("{% url 'run_script_view' %}", {
                 method: "POST",
                 headers: {
@@ -72,7 +105,7 @@
                     }
                 })
                 .catch(err => {
-                    document.getElementById("error-" + slot).innerText = "请求出错：" + err;
+                    document.getElementById("error-" + slot).innerText = "运行脚本时出错：" + err;
                 });
         }
     </script>

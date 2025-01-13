@@ -672,30 +672,26 @@ def check_email_settings(request):
         return JsonResponse({'status': 'error', 'message': '邮箱未配置'})
 
 
+
 @login_required
 def scripts_view(request):
-    """
-    展示和编辑3段脚本
-    """
-    # 首先确保数据库中已经有了 3 条记录（slot=1,2,3）
     _init_script_slots()
-
-    # 获取数据库中的所有脚本记录
     script_objs = CustomScript.objects.all().order_by('slot')
 
-    # 如果是 POST 请求，更新某一个脚本内容
     if request.method == 'POST':
-        slot = int(request.POST.get('slot'))
-        code = request.POST.get('code', '')
-        script_obj = CustomScript.objects.get(slot=slot)
-        script_obj.code = code
-        script_obj.save()
-        return redirect('scripts_view')  # 刷新页面或返回成功提示
+        try:
+            slot = int(request.POST.get('slot'))
+            code = request.POST.get('code', '')
+            script_obj = CustomScript.objects.get(slot=slot)
+            script_obj.code = code
+            script_obj.save()
+            # 这里一定返回JSON
+            return JsonResponse({'message': '保存成功'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
 
-    context = {
-        'script_objs': script_objs,
-    }
-    return render(request, 'scripts_page.html', context)
+    # GET请求时，仍然渲染HTML
+    return render(request, 'scripts_page.html', {'script_objs': script_objs})
 
 
 @login_required
