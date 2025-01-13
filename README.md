@@ -413,16 +413,6 @@ _测试是验证代码是否按预期运行的重要手段，YuYuWechat通过Git
 
 [easyChat](https://github.com/LTEnjoy/easyChat) YuYuWechatV2_Server的核心就是easyChat，请支持它
 
-# 7. 支持YuYu
-
-软件的维护需要一定的成本，如果你觉得这个软件对你有帮助，欢迎打赏作者一杯咖啡☕️
-
-YuYuWechat是完全免费的，捐赠只是为了支持作者继续开发和维护软件，并非强制性的
-
-![img_23.JPG](img/img_23.JPG)
-
-![img_24.JPG](img/img_24.JPG)
-
-# 8. 其他
+# 7. 其他
 
 代码仅用于对UIAutomation技术的交流学习使用，禁止用于实际生产项目，请勿用于非法用途和商业用途！如因此产生任何法律纠纷，均与作者无关！
