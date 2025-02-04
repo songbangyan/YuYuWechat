@@ -116,12 +116,23 @@
 
 # 2. 部署服务端
 
-## 前言
+## 使用编译后EXE直接部署（推荐）
 
-**为了简化服务端配置，请把微信安装在`C:/Program Files/Tencent/WeChat/WeChat.exe`，这个位置是微信默认的安装位置**
+- 在release界面找到最新的版本，下载`YuYuWechatV2_Server.exe`和`YuYuWechatV2_Server_run.bat`
 
+- 把这两个文件放在微信安装的目录下，双击`YuYuWechatV2_Server_run.bat`即可运行（默认端口是8000，若冲突了请自行修改bat文件指定端口）
 
-> 如果你微信安装在其他地方，请使用源码部署，然后运行服务器后：
+###### ⚠️Windows的bug，有的时候若是打开bat没反应，需要在控制台（小黑黑窗口那个）按一下回车
+
+## 使用源码部署
+
+- cd到`YuYuWechatV2_Server`目录下
+
+- 安装依赖`pip install -r requirements.txt`
+
+- 运行`python manage.py runserver 0.0.0.0:8000`
+
+本项目默认的微信路径是在项目的本目录下，使用源码部署时，若是微信安装在其他目录下，需要修改一下：
 
 > 访问`http://127.0.0.1:8000/admin/wechat_app/wechatconfig/1/change/` ，用户名`admin`,密码`tykWyr-bepqu6-fafvym`
 > ，手动修改微信的安装位置
@@ -133,23 +144,6 @@ Windows资源管理器复制出来文件路径是：`C:\Program Files\Tencent\We
 
 但是在后台中需要写成：`C:/Program Files/Tencent/WeChat/WeChat.exe
 ```
-
-> 保存好之后你可以运行`pyinstaller YuYuWechatV2_Server.spec`重新编译服务端为EXE，然后部署到服务器上
-## 使用编译后EXE直接部署（推荐）
-
-- 在release界面找到最新的版本，下载`YuYuWechatV2_Server.exe`和`YuYuWechatV2_Server_run.bat`
-
-- 两个文件放在同一个目录下，双击`YuYuWechatV2_Server_run.bat`即可运行（默认端口是8000，若冲突了请自行修改bat文件指定端口）
-
-###### ⚠️Windows的bug，有的时候若是打开bat没反应，需要在控制台（小黑黑窗口那个）按一下回车
-
-## 使用源码部署
-
-- cd到`YuYuWechatV2_Server`目录下
-
-- 安装依赖`pip install -r requirements.txt`
-
-- 运行`python manage.py runserver 0.0.0.0:8000`
 
 ## 测试服务端是否正常运行
 
