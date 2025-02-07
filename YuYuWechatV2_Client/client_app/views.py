@@ -723,16 +723,49 @@ def _init_script_slots():
         CustomScript.objects.get_or_create(slot=s)
 
 
+
 def _run_python_code(code_str):
     """
-    如果判断前端传的代码是想要执行generate_message_checks，
-    我们就直接调用相应的manage.py命令即可
+    将前端传来的代码保存为脚本文件，并通过 `python manage.py` 执行该文件。
     """
-    import subprocess
+    # 打印传入的代码，用于调试
+    print("接收到的脚本代码:")
+    print(code_str)  # 确保前端代码正确传递
 
-    # 这里不需要临时文件了，直接调用
-    cmd = ["python", "manage.py", "generate_message_checks"]
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    stdout, stderr = process.communicate()
+    # 获取项目的根目录
+    base_dir = settings.BASE_DIR  # Django 项目的根目录
+
+    # 设置脚本存储的路径（相对路径）
+    script_path = os.path.join(base_dir, "client_app", "management", "commands", "user_generated_script.py")
+
+    # 确保目标目录存在，如果不存在则创建
+    os.makedirs(os.path.dirname(script_path), exist_ok=True)
+
+    # 将前端传来的代码写入该文件
+    try:
+        with open(script_path, 'w') as script_file:
+            script_file.write(code_str)
+        print(f"脚本文件成功保存到: {script_path}")  # 打印确认文件保存位置
+    except Exception as e:
+        print(f"保存脚本文件时出错: {e}")
+        return f"保存脚本文件时出错: {e}", None
+
+    # 运行 manage.py 命令来执行刚保存的脚本
+    cmd = ["python", "manage.py", "user_generated_script"]  # 通过 manage.py 执行刚保存的脚本
+    try:
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                                   cwd=base_dir)  # 设定当前工作目录为 BASE_DIR
+        stdout, stderr = process.communicate()
+    except Exception as e:
+        print(f"运行脚本时出错: {e}")
+        return f"运行脚本时出错: {e}", None
+
+    # 删除脚本文件
+    try:
+        os.remove(script_path)
+        print(f"删除临时脚本文件: {script_path}")
+    except Exception as e:
+        print(f"删除脚本文件时出错: {e}")
+        return f"删除脚本文件时出错: {e}", None
 
     return stdout, stderr
