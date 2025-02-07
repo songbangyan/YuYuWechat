@@ -20,6 +20,9 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://localhost').split(',')
 
+# 解决TooManyFieldsSent错误，允许post传递更多字段
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000  #
+
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -105,6 +108,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # 新增这行，用于存放 collectstatic 收集的静态文件
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
