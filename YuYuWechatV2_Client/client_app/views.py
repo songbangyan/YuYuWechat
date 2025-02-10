@@ -1,3 +1,4 @@
+import io
 import json
 import os
 import subprocess
@@ -16,6 +17,7 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.utils import timezone
+from django.utils.timezone import now
 
 from .models import CustomScript
 from .models import EmailSettings
@@ -309,17 +311,22 @@ def send_message(request):
 
     return JsonResponse({'status': "Invalid request method"}, status=405)
 
+
 @log_activity
 def export_database(request):
     if request.method == 'POST':
-        file_path = os.path.join(settings.BASE_DIR, 'db_backup.json')
-        with open(file_path, 'w') as f:
-            call_command('dumpdata', 'client_app', stdout=f)  # 只导出 client_app 应用的数据
-        with open(file_path, 'rb') as f:
-            response = HttpResponse(f.read(), content_type='application/json')
-            response['Content-Disposition'] = 'attachment; filename=db_backup.json'
-            return response
-    return render(request, 'export.html')
+        output = io.StringIO()
+        # 排除 Logs 模型
+        call_command('dumpdata', 'client_app', '--exclude', 'client_app.Log', stdout=output)
+        output.seek(0)  # 将指针移动到开始位置
+
+        # 设置动态文件名，避免文件覆盖
+        filename = f"db_backup_{now().strftime('%Y%m%d_%H%M%S')}.json"
+        response = HttpResponse(output.read(), content_type='application/json')
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+        return response
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
 @log_activity
