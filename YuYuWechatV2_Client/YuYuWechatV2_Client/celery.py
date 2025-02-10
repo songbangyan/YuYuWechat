@@ -52,6 +52,6 @@ app.conf.beat_schedule = {
 
     'daily-database-backup': {
         'task': 'client_app.tasks.daily_backup_database',  # 任务所在位置
-        'schedule': crontab(minute='*/1'),  # 每天 00:00 执行一次
+        'schedule': crontab(hour=0, minute=0),  # 每天 00:00 执行一次
     },
 }
