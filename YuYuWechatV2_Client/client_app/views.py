@@ -16,7 +16,6 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 
 from .models import CustomScript
 from .models import EmailSettings
@@ -77,7 +76,6 @@ def get_server_ip(request):
     return JsonResponse({'server_ip': server_ip})
 
 
-@csrf_exempt
 @log_activity
 def set_server_ip(request):
     if request.method == 'POST':
@@ -221,7 +219,6 @@ def message_check_view(request):
                   {'tasks': tasks, 'groups': groups})
 
 
-@csrf_exempt
 @log_activity
 def skip_execution(request):
     # 这里是提前发送的处理函数
@@ -261,7 +258,6 @@ def skip_execution(request):
     return JsonResponse({'status': 'error', 'message': '无效请求'}, status=400)
 
 
-@csrf_exempt
 @log_activity
 def send_message(request):
     if request.method == 'POST':
@@ -314,7 +310,6 @@ def send_message(request):
     return JsonResponse({'status': "Invalid request method"}, status=405)
 
 @log_activity
-@csrf_exempt
 def export_database(request):
     if request.method == 'POST':
         file_path = os.path.join(settings.BASE_DIR, 'db_backup.json')
@@ -327,7 +322,6 @@ def export_database(request):
     return render(request, 'export.html')
 
 
-@csrf_exempt
 @log_activity
 def import_database(request):
     if request.method == 'POST':
@@ -349,7 +343,6 @@ def import_database(request):
     return render(request, 'import.html')
 
 
-@csrf_exempt
 @log_activity
 def start_celery(request):
     try:
@@ -382,7 +375,6 @@ def check_celery_running(request):
         return JsonResponse({'status': 'Failed to check Celery status', 'error': str(e)}, status=500)
 
 
-@csrf_exempt
 @log_activity
 def check_wechat_status(request):
     try:
@@ -407,7 +399,6 @@ def check_wechat_status(request):
         return JsonResponse({'status': 'error', 'message': str(e)})
 
 
-@csrf_exempt
 @log_activity
 def ping_server(request):
     error_type = "无法连接到服务器"
@@ -476,7 +467,6 @@ def log_counts(request):
     })
 
 
-@csrf_exempt
 def clear_logs(request):
     if request.method == 'POST':
         Log.objects.all().delete()
@@ -522,7 +512,6 @@ def check_errors(request):
     return JsonResponse({'errors': error_count})
 
 
-@csrf_exempt
 @log_activity
 def handle_error_cron(request):
     # 这里是处理定时任务遗漏的函数
@@ -585,7 +574,6 @@ def handle_error_cron(request):
     return JsonResponse({'status': 'invalid method'}, status=405)
 
 
-@csrf_exempt
 @log_activity
 def delete_chat_record_error(request):
     if request.method == 'POST':
@@ -654,7 +642,6 @@ def send_email(request):
         return JsonResponse({"status": "error", "message": "Invalid request method."}, status=405)
 
 
-@csrf_exempt
 @log_activity
 def check_email_settings(request):
     # 检查 Celery 是否运行
