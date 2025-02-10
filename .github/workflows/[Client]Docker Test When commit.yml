@@ -53,14 +53,13 @@ jobs:
         run: |
           docker exec -e DJANGO_SUPERUSER_PASSWORD="12345" yuyuwechatv2_client python manage.py createsuperuser --no-input --username testuser --email testuser@example.com
 
-      # Login and store session cookies, CSRF token, and CSRF cookie
+      # Login and store session cookies and CSRF token
       - name: Login and store session cookies
         run: |
           curl -c cookies.txt -s -d "username=testuser&password=12345" -X POST http://127.0.0.1:7500/login/
           csrf_token=$(grep -oP 'csrftoken=\K[^;]+' cookies.txt)
-          csrf_cookie=$(grep -oP 'csrftoken=\K[^;]+' cookies.txt)
 
-      # Test endpoints with login, CSRF token, and CSRF cookie
+      # Test endpoints with login and CSRF token
       - name: Test main endpoint with login and csrf token
         run: |
           curl -b cookies.txt -H "X-CSRFToken: $csrf_token" --fail http://127.0.0.1:7500/
