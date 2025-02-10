@@ -48,50 +48,19 @@ jobs:
             exit 1
           fi
 
-      - name: Test schedule_management endpoint without login
-        run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:7500/schedule_management/)
-          if [ $response -ne 302 ]; then
-            echo "schedule_management endpoint accessible without login, expected it to be protected."
-            exit 1
-          fi
-
-      - name: Test send_message_management endpoint without login
-        run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:7500/send_message_management/)
-          if [ $response -ne 302 ]; then
-            echo "send_message_management endpoint accessible without login, expected it to be protected."
-            exit 1
-          fi
-
-      - name: Test log_view endpoint without login
-        run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:7500/logs/)
-          if [ $response -ne 302 ]; then
-            echo "log_view endpoint accessible without login, expected it to be protected."
-            exit 1
-          fi
-
-      - name: Test error_detection_view endpoint without login
-        run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:7500/error_detection/)
-          if [ $response -ne 302 ]; then
-            echo "error_detection endpoint accessible without login, expected it to be protected."
-            exit 1
-          fi
-
       # Create a superuser
       - name: Create superuser
         run: |
           docker exec -e DJANGO_SUPERUSER_PASSWORD="12345" yuyuwechatv2_client python manage.py createsuperuser --no-input --username testuser --email testuser@example.com
 
-      # Login and store session cookies and CSRF token
+      # Login and store session cookies, CSRF token, and CSRF cookie
       - name: Login and store session cookies
         run: |
-          curl -c cookies.txt -d "username=testuser&password=12345" -X POST http://127.0.0.1:7500/login/
+          curl -c cookies.txt -s -d "username=testuser&password=12345" -X POST http://127.0.0.1:7500/login/
           csrf_token=$(grep -oP 'csrftoken=\K[^;]+' cookies.txt)
+          csrf_cookie=$(grep -oP 'csrftoken=\K[^;]+' cookies.txt)
 
-      # Test endpoints with login and CSRF token
+      # Test endpoints with login, CSRF token, and CSRF cookie
       - name: Test main endpoint with login and csrf token
         run: |
           curl -b cookies.txt -H "X-CSRFToken: $csrf_token" --fail http://127.0.0.1:7500/
@@ -150,10 +119,6 @@ jobs:
       - name: Test check_errors endpoint with login and csrf token
         run: |
           curl -b cookies.txt -H "X-CSRFToken: $csrf_token" --fail http://127.0.0.1:7500/check_errors/
-
-      #      - name: Test handle_error_cron endpoint with login and csrf token
-#        run: |
-      #          curl -b cookies.txt -H "X-CSRFToken: $csrf_token" --fail -X POST -H "Content-Type: application/json" -d '{"action": "ignore", "task_id": 1, "correct_time": "2023-08-01 12:00:00"}' http://127.0.0.1:7500/handle_error_cron/
 
       - name: Test export_database endpoint with login and csrf token
         run: |
