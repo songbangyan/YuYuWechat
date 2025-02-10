@@ -1,4 +1,6 @@
+import io
 import json
+import os
 import re
 import time
 from datetime import datetime, timedelta
@@ -7,10 +9,13 @@ from functools import wraps
 import requests
 from celery import shared_task
 from croniter import croniter
+from django.conf import settings
 from django.core.mail import EmailMessage, get_connection
+from django.core.management import call_command
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.timezone import now
 
 from .models import ScheduledMessage, ServerConfig, Log, ErrorLog, EmailSettings, MessageCheck, ScheduledFileMessage
 
@@ -482,3 +487,28 @@ def check_and_log_scheduled_message_errors():
                         error_detail=error_detail,
                         task_id=str(task.id)
                     )
+
+
+@shared_task
+def daily_backup_database():
+    """
+    使用dumpdata来备份client_app应用数据，排除Log模型。
+    备份文件保存到服务器本地文件系统（示例：项目根目录下的 backups/ 目录）。
+    """
+    # 1. 创建StringIO对象，用于捕获dumpdata输出
+    output = io.StringIO()
+    call_command('dumpdata', 'client_app', '--exclude', 'client_app.Log', stdout=output)
+    output.seek(0)
+
+    # 2. 生成带时间戳的文件名
+    filename = f"YuYuWechat_db_backup_{now().strftime('%Y%m%d_%H%M%S')}.json"
+
+    # 3. 拼接保存路径，在 BASE_DIR/backups/ 下
+    backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+    os.makedirs(backup_dir, exist_ok=True)  # 如果没有 backups 目录则自动创建
+
+    file_path = os.path.join(backup_dir, filename)
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(output.read())
+
+    return f"Backup saved to {file_path}"

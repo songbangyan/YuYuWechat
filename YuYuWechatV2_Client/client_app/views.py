@@ -13,10 +13,12 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMessage, get_connection
 from django.core.management import call_command
 from django.core.paginator import Paginator
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
+from django.shortcuts import render
 from django.utils import timezone
+from django.utils.encoding import smart_str
 from django.utils.timezone import now
 
 from .models import CustomScript
@@ -321,7 +323,7 @@ def export_database(request):
         output.seek(0)  # 将指针移动到开始位置
 
         # 设置动态文件名，避免文件覆盖
-        filename = f"db_backup_{now().strftime('%Y%m%d_%H%M%S')}.json"
+        filename = f"YuYuWechat_db_backup_{now().strftime('%Y%m%d_%H%M%S')}.json"
         response = HttpResponse(output.read(), content_type='application/json')
         response['Content-Disposition'] = f'attachment; filename={filename}'
         return response
@@ -763,3 +765,39 @@ def _run_python_code(code_str):
         return f"删除脚本文件时出错: {e}", None
 
     return stdout, stderr
+
+
+def backup_list(request):
+    """
+    显示 backups 文件夹下的所有 .json 备份文件，并渲染到前端页面。
+    """
+    backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+    if not os.path.exists(backup_dir):
+        backup_files = []
+    else:
+        # 只列出 .json 文件，避免其它无关文件混进来
+        backup_files = [f for f in os.listdir(backup_dir) if f.endswith('.json')]
+
+    # 将文件列表传递给模板
+    return render(request, 'backup_list.html', {
+        'backup_files': backup_files
+    })
+
+
+def download_backup(request, filename):
+    """
+    根据传入的 filename，在 backups 文件夹中找到对应的文件并返回下载响应。
+    """
+    backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+    file_path = os.path.join(backup_dir, filename)
+
+    # 如果文件不存在，返回 404
+    if not os.path.exists(file_path):
+        raise Http404("备份文件不存在")
+
+    # 读取并返回文件内容
+    with open(file_path, 'rb') as f:
+        response = HttpResponse(f.read(), content_type='application/json')
+        # 设置下载头
+        response['Content-Disposition'] = f'attachment; filename={smart_str(filename)}'
+        return response
