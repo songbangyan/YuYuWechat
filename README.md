@@ -225,7 +225,7 @@ gpedit.msc
 我已经编译好了x86和arm的docker镜像，Windows/mac/Linux的x86和arm架构均可运行
 
 - 在release界面找到最新的版本，下载`docker-compose.yml`文件
-- 在同目录下创建一个文件夹`postgres_data`，用于挂载数据库文件
+- 在同目录下创建一个文件夹`postgres_data`和`backups`，用于挂载数据库文件，以及数据库备份文件
 - 运行`docker-compose up`即可运行
 
 ###### 如果你想用https访问，需要在`docker-compose.yml`文件里修改
