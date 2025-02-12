@@ -1,3 +1,4 @@
+import json
 import io
 import json
 import os
@@ -8,6 +9,7 @@ from functools import wraps
 import requests
 from croniter import croniter
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMessage, get_connection
@@ -15,8 +17,7 @@ from django.core.management import call_command
 from django.core.paginator import Paginator
 from django.http import HttpResponse, Http404
 from django.http import JsonResponse
-from django.shortcuts import redirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from django.utils.timezone import now
@@ -801,3 +802,32 @@ def download_backup(request, filename):
         # 设置下载头
         response['Content-Disposition'] = f'attachment; filename={smart_str(filename)}'
         return response
+
+
+def manual_backup(request):
+    if request.method == "POST":
+        try:
+            # 1. 创建StringIO对象，用于捕获dumpdata输出
+            output = io.StringIO()
+            call_command('dumpdata', 'client_app', '--exclude', 'client_app.Log', stdout=output)
+            output.seek(0)
+
+            # 2. 生成带时间戳的文件名
+            filename = f"YuYuWechat_db_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+
+            # 3. 拼接保存路径，在 BASE_DIR/backups/ 下
+            backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+            os.makedirs(backup_dir, exist_ok=True)  # 如果没有 backups 目录则自动创建
+
+            file_path = os.path.join(backup_dir, filename)
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(output.read())
+
+            # 给用户反馈备份已完成
+            messages.success(request, f"手动备份已完成，文件保存在 {file_path}。")
+        except Exception as e:
+            messages.error(request, f"备份失败: {str(e)}")
+
+        return redirect('backup_list')  # 确保重定向到 backup_list 页面
+
+    return render(request, 'backup/backup_files.html')  # 如果不是 POST 请求，直接渲染页面

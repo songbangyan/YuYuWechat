@@ -7,6 +7,13 @@
     <div>
         <h2>现有备份文件</h2>
         <h3>YuYuWechat的数据库每天会自动备份一次，可以在这里下载每天的备份文件</h3>
+
+        <!-- 手动备份按钮 -->
+        <form method="post" action="{% url 'manual_backup' %}">
+            {% csrf_token %}
+            <button type="submit" class="backup-button">手动备份数据库</button>
+        </form>
+
         {% if backup_files %}
             <table>
                 <thead>
