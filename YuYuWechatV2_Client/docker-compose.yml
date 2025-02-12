@@ -32,3 +32,5 @@ services:
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - CSRF_TRUSTED_ORIGINS=https://localhost,https://yourdomain.com  # 定义CSRF信任域
+    volumes:
+      - ./backups:/app/backups  # 挂载 ./backups 到容器的 /app/backups

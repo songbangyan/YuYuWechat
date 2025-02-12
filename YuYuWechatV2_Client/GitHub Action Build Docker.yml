@@ -45,6 +45,8 @@ services:
     networks:
       - yuyuwechatv2_network
     restart: always
+    volumes:
+      - ./backups:/app/backups
 
 networks:
   yuyuwechatv2_network:
