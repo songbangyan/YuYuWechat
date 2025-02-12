@@ -15,7 +15,7 @@
         </form>
 
         {% if backup_files %}
-            <table>
+            <table id="backupTable">
                 <thead>
                 <tr>
                     <th>文件名</th>
@@ -27,7 +27,6 @@
                     <tr>
                         <td>{{ file_name }}</td>
                         <td>
-                            <!-- 使用我们在 urls.py 中配置的 download_backup 路由 -->
                             <a href="{% url 'download_backup' file_name %}" class="download-button">下载</a>
                         </td>
                     </tr>
@@ -38,4 +37,27 @@
             <p>暂无备份文件。</p>
         {% endif %}
     </div>
+
+    <script>
+        // 自动排序表格
+        window.onload = function () {
+            const table = document.getElementById("backupTable");
+            const rows = Array.from(table.rows).slice(1);  // 获取所有表格行，去掉表头
+
+            // 排序：按文件名中的日期部分进行排序
+            rows.sort((rowA, rowB) => {
+                const fileNameA = rowA.cells[0].innerText;
+                const fileNameB = rowB.cells[0].innerText;
+
+                // 提取文件名中的时间戳部分并转换为 Date 对象
+                const dateA = new Date(fileNameA.split('_').pop().split('.')[0].replace(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6"));
+                const dateB = new Date(fileNameB.split('_').pop().split('.')[0].replace(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6"));
+
+                return dateB - dateA;  // 降序排列，最新的排在最上面
+            });
+
+            // 重新附加排序后的行
+            rows.forEach(row => table.appendChild(row));
+        };
+    </script>
 {% endblock %}
